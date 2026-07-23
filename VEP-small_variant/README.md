@@ -1,65 +1,50 @@
-# Annotation scripts
+# VEP Annotation
 
-## Directory structure
+## Requirement
+- Python 3.12.2
+- BCFtools 1.18
+- Anaconda3 23.3.1
+- Ensembl VEP v115.1
+
+## Reference Genomes
+The workflow automatically detects the chromosome naming convention and applies the appropriate reference during normalization:
+- **UCSC Style (with "chr" prefix):** Uses `Homo_sapiens_assembly38.fasta`.
+- **Ensembl Style (without "chr" prefix):** Uses `Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz`.
+
+### Customization: Changing Reference Genomes
+If you need to use a different reference FASTA, you must manually update the `REF_FASTA` variable in `01_preprocess.sh`. 
+
+> [!IMPORTANT]
+> The script uses a conditional check to handle chromosome naming conventions (with or without the "chr" prefix). Ensure you update the correct path within the `if-else` block:
+> - **With "chr" prefix**: Update `REF_FASTA` inside the `if` block.
+> - **Without "chr" prefix**: Update `REF_FASTA` inside the `else` block.
+
+**Example in `01_preprocess.sh`:**
+```bash
+if [[ "$checkCHR" =~ ^chr ]]; then
+    # Update this path for 'chr' prefixed VCFs
+    REF_FASTA=/path/to/your/custom_hg38_with_chr.fasta
+else
+    # Update this path for non-'chr' prefixed VCFs
+    REF_FASTA=/path/to/your/custom_GRCh38_no_chr.fa.gz
+fi
+```
+
+## Script description
 - `00_vep_batch_submitter.py`: Submit the slurm job(s) for annotating the VCFs under the given directory
 - `01_preprocess.sh`: Normalize the input VCF and split the input VCF by chromosomes
 - `02_submit_vep.sh`: Submit array job according to the number of VCFs
 - `02_vep.sh`: Annotate small variants with Ensembl VEP
 - `03_post_vep.sh`: Remove the temporary files and merge the annotation files
-- `utils/`
-  - `job_utils.sh`: Log file print information setting
-  - `mane_plus_clinical.wchr.buffer5000bp.bed`: 65 MANE Plus Clinical transcript region (with chr)
-  - `mane_plus_clinical.wochr.buffer5000bp.bed`: 65 MANE Plus Clinical transcript region (without chr)
 
-## Usage
-### Required data
-- Small variant (SNV, indel) VCF(s), both sample-level and joint-called VCFs are supported.
-  > The VCFs must be placed in the same directory if multiple VCFs are being processed at the same time.
-
-### Running pipeline
-```
-module load Python/3.12.2
-python 00_vep_batch_submitter.py <input_vcf_directory> <output_directory>
-```
-It will create a subdirectory `VEP_output` under the <output_directory>
-> [!NOTE]
-> `00_vep_batch_submitter.py` is the entry point. It automatically generates sample-specific submission scripts (`sample_submit.sh`) and logs, then dispatches them to the Slurm scheduler. You **do not need** to run scripts 01-03 manually.
-
-## Output
-### Directory structure
-```
-VEP_output
-  │⎯ sample1_submit.sh
-  │⎯ sample1/
-  │     │⎯ script/
-  │     │     │⎯ sample1_preprocess.sh
-  │     │     │⎯ sample1_submit_vep.sh
-  │     │     │⎯ sample1_vep.sh
-  │     │     ╵⎯ sample1_post_vep.sh
-  │     │⎯ logs/
-  │     │     │⎯ DATETIME_sample1_preprocess.log
-  │     │     │⎯ DATETIME_sample1_submit_vep.log
-  │     │     │⎯ DATETIME_sample1_chr1_vep.log
-  │     │     │⎯ ...
-  │     │     ╵⎯ DATETIME_sample1_concat.log
-  │     │⎯ sample1.cleaned.vcf.gz
-  │     │⎯ sample1.cleaned.vcf.gz.tbi
-  │     │⎯ sample1.vep.tsv
-  │     │⎯ sample1.vep.vcf.gz
-  │     │⎯ sample1.vep.vcf.gz.tbi
-  │     │⎯ sample1.vep.mane_plus_clinical.tsv
-  │     │⎯ sample1.vep.mane_plus_clinical.vcf.gz
-  │     ╵⎯ sample1.vep.mane_plus_clinical.vcf.gz.tbi
-  │⎯ sample2_submit.sh
-  │⎯ sample2/
-  ┊
-```
+## Output description
+The script will automatically create an `VEP_output` subdirectory under the sample folder.
 
 ### Result files
 - `{sample}.cleaned.vcf.gz`: The VCF after normalization and remains only chr1-22, X, Y, M.
 - `{sample}.vep.tsv`, `{sample}.vep.vcf.gz`: All variants, MANE Select transcripts are prioritized over MANE Plus Clinical when selecting transcripts.
 - `{sample}.vep.mane_plus_clinical.tsv`, `{sample}.vep.mane_plus_clinical.vcf.gz`: Only variants located in the genes that have both MANE Select and MANE Plus Clinical transcripts; the selected transcripts in this file remain the MANE Plus Clinical transcript rather than the MANE Select transcripts.
-  > A full list of these 65 genes can be found in [`utils/mane_plus_clinical.wchr.buffer5000bp.bed`](https://github.com/leechiehyu/VEP-small_variant/blob/main/VEP_script/utils/mane_plus_clinical.wchr.buffer5000bp.bed).
+  > A full list of these 65 genes can be found in [`utils/VEP/mane_plus_clinical.wchr.buffer5000bp.bed`](https://github.com/leechiehyu/VEP-ACMG/blob/master/utils/VEP/mane_plus_clinical.wchr.buffer5000bp.bed).
 
 ### Result columns
 The final output is generated as a TSV file. Below are descriptions for some key columns:
@@ -88,7 +73,8 @@ The final output is generated as a TSV file. Below are descriptions for some key
 | NMD | VEP plugin <br/> (NMD) | **Gene Constraints & Sensitivity Metrics** <br/> Predicts whether a variant is likely to trigger Nonsense-Mediated Decay (NMD) |
 | satMutMPRA | VEP plugin <br/> (satMutMPRA) | **Gene Constraints & Sensitivity Metrics** <br/> Data from saturated mutagenesis and Massively Parallel Reporter Assays (MPRA) to assess variant effects |
 | RepeatMasker | RepeatMasker | Genomic repeat regions identified by RepeatMasker |
-| gnomADe_AF <br/> gnomADe_AFR_AF <br/> gnomADe_AMR_AF <br/> gnomADe_ASJ_AF <br/> gnomADe_EAS_AF <br/> gnomADe_FIN_AF <br/> gnomADe_MID_AF <br/> gnomADe_NFE_AF <br/> gnomADe_REMAINING_AF <br/> gnomADe_SAS_AF <br/> gnomADg_AF <br/> gnomADg_AFR_AF <br/> gnomADg_AMI_AF <br/> gnomADg_AMR_AF <br/> gnomADg_ASJ_AF <br/> gnomADg_EAS_AF <br/> gnomADg_FIN_AF <br/> gnomADg_MID_AF <br/> gnomADg_NFE_AF <br/> gnomADg_REMAINING_AF <br/> gnomADg_SAS_AF <br/> gnomAD_exome <br/> gnomAD_exome_FILTER <br/> gnomAD_exome_AN <br/> gnomAD_exome_AF <br/> gnomAD_exome_nhomalt <br/> gnomAD_exome_AN_eas <br/> gnomAD_exome_AF_eas <br/> gnomAD_exome_nhomalt_eas <br/> gnomAD_genome <br/> gnomAD_genome_FILTER <br/> gnomAD_genome_AN <br/> gnomAD_genome_AF <br/> gnomAD_genome_nhomalt <br/> gnomAD_genome_AN_eas <br/> gnomAD_genome_AF_eas <br/> gnomAD_genome_nhomalt_eas <br/> gnomAD_genome_cov | VEP <br/> (gnomAD) | Allele number (AN), allele frequency (AF), and homozygous individual counts across various gnomAD populations (Exome v4.1, Genome v4.1, and Coverage v3) |
+| gnomADe_AF <br/> gnomADe_AFR_AF <br/> gnomADe_AMR_AF <br/> gnomADe_ASJ_AF <br/> gnomADe_EAS_AF <br/> gnomADe_FIN_AF <br/> gnomADe_MID_AF <br/> gnomADe_NFE_AF <br/> gnomADe_REMAINING_AF <br/> gnomADe_SAS_AF <br/> gnomADg_AF <br/> gnomADg_AFR_AF <br/> gnomADg_AMI_AF <br/> gnomADg_AMR_AF <br/> gnomADg_ASJ_AF <br/> gnomADg_EAS_AF <br/> gnomADg_FIN_AF <br/> gnomADg_MID_AF <br/> gnomADg_NFE_AF <br/> gnomADg_REMAINING_AF <br/> gnomADg_SAS_AF | VEP <br/> (gnomAD) | Allele frequency (AF) across various gnomAD populations |
+| gnomAD_exome <br/> gnomAD_exome_FILTER <br/> gnomAD_exome_AN <br/> gnomAD_exome_AF <br/> gnomAD_exome_nhomalt <br/> gnomAD_exome_AN_eas <br/> gnomAD_exome_AF_eas <br/> gnomAD_exome_nhomalt_eas <br/> gnomAD_genome <br/> gnomAD_genome_FILTER <br/> gnomAD_genome_AN <br/> gnomAD_genome_AF <br/> gnomAD_genome_nhomalt <br/> gnomAD_genome_AN_eas <br/> gnomAD_genome_AF_eas <br/> gnomAD_genome_nhomalt_eas <br/> gnomAD_genome_cov | gnomAD | Allele number (AN), allele frequency (AF), and homozygous individual counts across various gnomAD populations |
 | DVD_SNV <br/> DVD_SNV_GENE <br/> DVD_SNV_Variant_Classification | Deafness Variation Database | Curated variant information from the Deafness Variation Database (DVD) |
 | ClinVar <br/> ClinVar_ALLELEID <br/> ClinVar_CLNSIG <br/> ClinVar_CLNSIGCONF <br/> ClinVar_CLNREVSTAT <br/> ClinVar_NumberSubmitters <br/> ClinVar_NAME | ClinVar | Clinical significance, review status, and submission details retrieved directly from ClinVar |
 | CLN_VEP <br/> CLN_VEP_Feature <br/> CLN_VEP_AAchange <br/> CLN_VEP_Protein_position | ClinVar | ClinVar variants re-annotated via VEP; this set is filtered to retain only missense variants for comparison | 
@@ -97,3 +83,47 @@ The final output is generated as a TSV file. Below are descriptions for some key
 | MitoMap <br/> MitoMap_aachange <br/> MitoMap_DiseaseStatus | MitoMap | Variant and disease association information for mitochondrial DNA from MitoMap |
 | TWB_mtDNA <br/> TWB_mtDNA_AF_het_vaf05 | Taiwan Biobank | Mitochondrial DNA variant data specific to the Taiwan Biobank population |
 | gnomAD_mtDNA <br/> gnomAD_mtDNA_AF_hom <br/> gnomAD_mtDNA_AF_het <br/> gnomAD_mtDNA_AF_hom_eas <br/> gnomAD_mtDNA_AF_het_eas | gnomAD | Mitochondrial allele frequencies from gnomAD |
+
+## Databases and plugins
+### Data in the VEP cache
+- **Ensembl database (VEP)**, version 115.1
+- **MANE**, version 1.4
+
+### Plugins
+- **dbscSNV**, version 1.1
+- **dbNSFP**, version 4.9a
+  - **SIFT** ensembl 66, released Jan, 2015
+  - **PROVEAN** ensembl 66, version 1.1, released Jan, 2015
+  - **Polyphen-2**, version 2.2.2, released Feb, 2012
+  - **LRT**, released November, 2009
+  - **MutationTaster 2**, data retrieved in 2015
+  - **MutationAssessor**, release 3
+  - **FATHMM**, version 2.3
+  - **fathmm-MKL**
+  - **CADD**, version 1.7
+  - **DANN**
+  - **MetaSVM** and **MetaLR**
+  - **M-CAP**, version 1.3
+  - **GERP++**
+- **SpliceAI** SNV and indel, version 1.3
+- **LOEUF**, based on gnomAD v4, GRCh38
+- **PrimateAI**, version 0.2
+- **MaxEntScan**
+- **DosageSensitivity**
+- **satMutMPRA**
+- **LoFtool**
+- **pLI**
+- **NMD**
+
+### Custom datasets
+- **DVD**, version 9.2
+- **ClinVar**, released 20251109
+- **RepeatMasker**, download from UCSC Table Browser, data last updated: 2022-10-18
+- **gnomAD exome**, version 4.1
+- **gnomAD genome**, version 4.1
+- **gnomAD genome coverage**, version 3
+- **Taiwan Biobank** SNV and indel, called by Jacob's lab
+- **Taiwan Biobank** SNV and indel, released by Taiwan Biobank
+- **MitoMap**, released 20260418
+- **Taiwan Biobank** mitochondria SNV and indel, called by Jacob's lab
+- **gnomAD mitochondria**, version 3.1
