@@ -29,7 +29,7 @@ SAMPLE_INPUT=${FILE[$SLURM_ARRAY_TASK_ID]}
 
 ## If the input file does not exist, skip this task
 if [[ ! -f "$SAMPLE_INPUT" ]]; then
-    echo "[Info] $(date '+%Y-%m-%d %H:%M:%S') - Input file $SAMPLE_INPUT does not exist. Skipping this task."
+    echo "[Warning] $(date '+%Y-%m-%d %H:%M:%S') - Input file $SAMPLE_INPUT does not exist. Skipping this task."
     exit 0
 fi
 
