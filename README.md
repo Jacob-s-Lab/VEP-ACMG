@@ -2,12 +2,17 @@
 
 This repository a VEP-based annotation and point-based in-house ACMG classification workflow for germline small variants — GRCh38.
 
-For the details of this pipeline, please refer to the white paper and hands-on in this repo.
+For detailed information about this pipeline, please refer to the white paper and hands-on in this repo.
+
+Using the following command to clone this pipeline:
+``` bash
+git clone https://github.com/leechiehyu/VEP-ACMG.git
+```
 
 ## Create the environment
-Use the `utils/environment.yml` file to create a conda environment.
+Use the `utils/setup_env.sh` file to create a conda environment.
 ``` bash
-bash utils/environment.yml
+bash utils/setup_env.sh
 ```
 After executing this command, you can choose where to install your conda environment and caches.
 
