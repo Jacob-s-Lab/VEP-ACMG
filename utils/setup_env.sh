@@ -74,15 +74,17 @@ case "$CHOICE" in
         ;;
 esac
 
-# 4. 開始執行建立安裝
+# 4. Start the installation process
 echo -e "\n=============================================="
 echo "開始建立 Conda 環境..."
 echo "執行指令: $INSTALL_CMD"
 echo -e "==============================================\n"
 
-# 執行安裝指令
+# Execute the installation command
 $INSTALL_CMD
 
+# Unload the Anaconda module after installation
+ml unload Anaconda/Anaconda3
 
 # =======================================
 # 5. Record the environment path and mode to a config file for future reference
@@ -93,18 +95,18 @@ echo "# 這是自動產生的環境路徑紀錄檔，請勿手動刪除" > "$CON
 
 case "$CHOICE" in
     1)
-        # 紀錄使用者選擇了名稱模式
+        # Echo the default path mode to the config file
         echo "export CONDA_ENV_MODE='MODE_1'" >> "$CONFIG_RECORD"
         echo "export CONDA_ENV='acmg_rule'"   >> "$CONFIG_RECORD"
         ;;
     2)
-        # 紀錄使用者選擇了專案內置路徑模式
+        # Echo the project path mode to the config file
         echo "export CONDA_ENV_MODE='MODE_2'"     >> "$CONFIG_RECORD"
         echo "export CONDA_ENV='$ENV_PATH'"       >> "$CONFIG_RECORD"
         echo "export CONDA_PKGS_DIRS='$PKG_PATH'" >> "$CONFIG_RECORD"
         ;;
     3)
-        # 紀錄使用者選擇了完全自訂路徑模式
+        # Echo the custom path mode to the config file
         echo "export CONDA_ENV_MODE='MODE_3'".    >> "$CONFIG_RECORD"
         echo "export CONDA_ENV='$CUSTOM_PATH'"    >> "$CONFIG_RECORD"
         echo "export CONDA_PKGS_DIRS='$PKG_PATH'" >> "$CONFIG_RECORD"
