@@ -3,3 +3,4 @@ results/
 *_ori.sh
 .env_path_config
 input_vcf/*
+.venv/
