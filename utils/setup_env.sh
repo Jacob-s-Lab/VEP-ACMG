@@ -26,7 +26,7 @@ echo "       Conda Environment Auto-Installer       "
 echo "=============================================="
 echo "請選擇您的 Conda 環境安裝路徑："
 echo "1) /home/user/.conda/envs/ (預設路徑)"
-echo "2) /work/user/.conda/envs/"
+echo "2) /work/user 的 VEP-ACMG 專案路徑下 (建立 .venv)"
 echo "3) 自訂路徑（手動指定環境與快取路徑）"
 echo "=============================================="
 read -p "請輸入選項 (1/2/3): " CHOICE
@@ -47,6 +47,7 @@ case "$CHOICE" in
         PKG_PATH="/work/$USER/.conda/pkgs"
         mkdir -p "$PKG_PATH"
         export CONDA_PKGS_DIRS="$PKG_PATH"
+        echo "將快取放在 /work 下: $PKG_PATH ..."
         ;;
 
     3)
