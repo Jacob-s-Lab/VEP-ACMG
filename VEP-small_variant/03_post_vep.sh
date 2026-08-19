@@ -62,10 +62,14 @@ fi
 ### pipefail temporarily disabled to avoid script exit when encountering error in this step
 set +o pipefail
 checkFMT=$(zgrep -v '^#' $FINAL_VCF | head -n 1 | awk '{print $9}')
+checkSM=$(bcftools query -l $FINAL_VCF | head -n 2 | wc -l)
 set -o pipefail
 
 # Determine fill-tags args based on available FORMAT fields
-if [[ "$checkFMT" =~ GT ]] && [[ "$checkFMT" =~ AD ]] && [[ "$checkFMT" =~ DP ]] && [[ "$checkFMT" =~ VAF ]]; then
+if [[ "$checkSM" -ge 2 ]]; then
+    echo "[Info] $(date '+%Y-%m-%d %H:%M:%S') - VCF contains more than one sample, generating TSV..."
+    FILL_TAGS_ARGS="INFO/AF"
+elif [[ "$checkFMT" =~ GT ]] && [[ "$checkFMT" =~ AD ]] && [[ "$checkFMT" =~ DP ]] && [[ "$checkFMT" =~ VAF ]]; then
     echo "[Info] $(date '+%Y-%m-%d %H:%M:%S') - VCF contains GT & AD & DP & VAF in FORMAT, generating TSV..."
     FILL_TAGS_ARGS=""
 elif [[ "$checkFMT" =~ GT ]] && [[ "$checkFMT" =~ AD ]] && [[ "$checkFMT" =~ DP ]]; then
@@ -80,8 +84,6 @@ else
 fi
 
 # Shared post-processing pipeline
-split_vep_with_gt='bcftools +split-vep -H -f "%CHROM\t%POS\t%REF\t%ALT\t%FILTER\t[%GT\t%DP\t%AD{0}\t%AD{1}\t%VAF]\t%CSQ\n" -A tab'
-split_vep_no_gt='bcftools +split-vep -H -f "%CHROM\t%POS\t%REF\t%ALT\t%FILTER\t%CSQ\n" -A tab'
 fix_header() {
     sed -E '1s/\[[0-9]+\]//g' | \
     sed 's/\#//' | \
@@ -92,7 +94,12 @@ run_tsv() {
     local input_vcf="$1"
     local output_tsv="$2"
 
-    if [[ "$FILL_TAGS_ARGS" == "NONE" ]]; then
+    if [[ "$FILL_TAGS_ARGS" == "INFO/AF" ]]; then
+        bcftools +fill-tags "$input_vcf" -- -t "$FILL_TAGS_ARGS" | \
+            bcftools +split-vep -H -f '%CHROM\t%POS\t%REF\t%ALT\t%FILTER\t%AF\t%CSQ\n' -A tab | \
+            sed -E '1s/\[[0-9]+\]//g' | sed 's/\#//' \
+            > "$output_tsv"
+    elif [[ "$FILL_TAGS_ARGS" == "NONE" ]]; then
         bcftools +split-vep -H -f '%CHROM\t%POS\t%REF\t%ALT\t%FILTER\t%CSQ\n' -A tab "$input_vcf" | \
             sed -E '1s/\[[0-9]+\]//g' | sed 's/\#//' \
             > "$output_tsv"
@@ -107,6 +114,7 @@ run_tsv() {
             > "$output_tsv"
     fi
 }
+
 run_tsv "$FINAL_VCF"      "${SAMPLE}.vep.tsv"
 if [[ -f "$FINAL_VCF_MANE" ]]; then
     run_tsv "$FINAL_VCF_MANE" "${SAMPLE}.vep.mane_plus_clinical.tsv"
