@@ -30,6 +30,11 @@ logfile=${SUBMIT_LOG_DIR}/${TIME}_submit_acmg.log
 exec > "$logfile" 2>&1
 
 
+# -------- temp argument for auto-generated sample list ---------
+AUTO_GENERATED_TMP=""
+trap 'if [[ -n "$AUTO_GENERATED_TMP" && -f "$AUTO_GENERATED_TMP" ]]; then rm -f "$AUTO_GENERATED_TMP"; fi' EXIT
+
+
 # -------- Checking conda environment ---------
 echo "[Info] 正在檢查分析環境配置..."
 # 呼叫 config.sh 裡的啟動函式，若失敗就終止
@@ -54,7 +59,8 @@ if [[ ! -f "$ACMG_SAMPLE_LIST" || ! -s "$ACMG_SAMPLE_LIST" ]]; then
         exit 1
     fi
 
-    ACMG_SAMPLE_LIST="$(mktemp)"
+    AUTO_GENERATED_TMP="$(mktemp)"
+    ACMG_SAMPLE_LIST="$AUTO_GENERATED_TMP"
     printf "%s\n" "${all_tsvs[@]}" > "$ACMG_SAMPLE_LIST"
     echo "[Info] 找到 ${#all_tsvs[@]} 個 VEP TSV，寫入暫存 list: $ACMG_SAMPLE_LIST"
 fi
