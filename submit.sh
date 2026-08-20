@@ -21,6 +21,11 @@ logfile=${SUBMIT_LOG_DIR}/${TIME}_submit.log
 exec > "$logfile" 2>&1
 
 
+# -------- temp argument for auto-generated sample list ---------
+AUTO_GENERATED_TMP=""
+trap 'if [[ -n "$AUTO_GENERATED_TMP" && -f "$AUTO_GENERATED_TMP" ]]; then rm -f "$AUTO_GENERATED_TMP"; fi' EXIT
+
+
 # -------- Checking conda environment ---------
 echo "[Info] 正在檢查分析環境配置..."
 # 呼叫 config.sh 裡的啟動函式，若失敗就終止
@@ -50,7 +55,8 @@ if [[ ! -f "$SAMPLE_LIST" || ! -s "$SAMPLE_LIST" ]]; then
         exit 1
     fi
 
-    SAMPLE_LIST="$(mktemp)"
+    AUTO_GENERATED_TMP="$(mktemp)"
+    SAMPLE_LIST="$AUTO_GENERATED_TMP"
     printf "%s\n" "${all_vcfs[@]}" > "$SAMPLE_LIST"
     echo "[Info] 找到 ${#all_vcfs[@]} 個 VCF，寫入暫存 list: $SAMPLE_LIST"
 fi
