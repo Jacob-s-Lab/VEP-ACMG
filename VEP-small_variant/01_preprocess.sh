@@ -50,12 +50,12 @@ CHRpresent2="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y,M,MT"
 if [[ "$checkCHR" =~ ^chr ]]; then
     echo "[Info] $(date '+%Y-%m-%d %H:%M:%S') - Chromosomes have 'chr' prefix. Filtering with 'chr'..."
     bcftools view -t $CHRpresent1 $INPUT_VCF -Oz -o ${SAMPLE}.exChr.vcf.gz
-    REF_FASTA=/staging/reserve/jacobhsu/reference/VEP/Homo_sapiens_assembly38.fasta
+    REF_FASTA=/project/jacobhsu/reference/VEP/Homo_sapiens_assembly38.fasta
     MANE_PLUS_CLINICAL_BED=${VEP_UTILS_DIR}/mane_plus_clinical.wchr.buffer5000bp.bed
 else
     echo "[Info] $(date '+%Y-%m-%d %H:%M:%S') - Chromosomes do not have 'chr' prefix. Filtering without 'chr'..."
     bcftools view -t $CHRpresent2 $INPUT_VCF -Oz -o ${SAMPLE}.exChr.vcf.gz
-    REF_FASTA=/staging/reserve/jacobhsu/reference/VEP/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+    REF_FASTA=/project/jacobhsu/reference/VEP/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
     MANE_PLUS_CLINICAL_BED=${VEP_UTILS_DIR}/mane_plus_clinical.wochr.buffer5000bp.bed
 fi
 
