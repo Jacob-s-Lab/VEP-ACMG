@@ -21,11 +21,11 @@ cd $OUTPUT_VCF_PATH
 # Paths and general settings #
 ##############################
 # Path of VEP
-VEP_CACHE=/staging/reserve/jacobhsu/reference/VEP/Cache
-VEP_FASTA=/staging/reserve/jacobhsu/reference/VEP/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
-VEP_PLUGIN_DIR=/staging/reserve/jacobhsu/reference/VEP/plugins
-VEP_PLUGIN_DATA=/staging/reserve/jacobhsu/reference/VEP/plugins_data
-Custom_Annotation=/staging/reserve/jacobhsu/reference/VEP/custom_annotation
+VEP_CACHE=/project/jacobhsu/reference/VEP/Cache
+VEP_FASTA=/project/jacobhsu/reference/VEP/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+VEP_PLUGIN_DIR=/project/jacobhsu/reference/VEP/plugins
+VEP_PLUGIN_DATA=/project/jacobhsu/reference/VEP/plugins_data
+Custom_Annotation=/project/jacobhsu/reference/VEP/custom_annotation
 
 # plugin paths
 SpliceAI_snv=${VEP_PLUGIN_DATA}/SpliceAI/spliceai_scores.masked.snv.hg38.vcf.gz
