@@ -17,11 +17,11 @@
     "B_SPLICEAI": null
   },
   "database_path": {
-    "LOF_GENELIST": "/staging/reserve/jacobhsu/reference/VEP/custom_annotation/LoF_genelist_vClinVar20251109.txt",
-    "MOI": "/staging/reserve/jacobhsu/reference/VEP/custom_annotation/Inheritance_20231219.260224_clean_hgnc.txt",
-    "GOF": "/staging/reserve/jacobhsu/reference/VEP/custom_annotation/hg38_GOF_202103.tsv",
-    "P_HOTSPOT_SELECT": "/staging/reserve/jacobhsu/reference/VEP/custom_annotation/hg38_pathogenicDB_Region_vClinVar20251109.select.tsv",
-    "P_HOTSPOT_CLINICAL": "/staging/reserve/jacobhsu/reference/VEP/custom_annotation/hg38_pathogenicDB_Region_vClinVar20251109.clinical.tsv",
+    "LOF_GENELIST": "/project/jacobhsu/reference/VEP/custom_annotation/LoF_genelist_vClinVar20251109.txt",
+    "MOI": "/project/jacobhsu/reference/VEP/custom_annotation/Inheritance_20231219.260224_clean_hgnc.txt",
+    "GOF": "/project/jacobhsu/reference/VEP/custom_annotation/hg38_GOF_202103.tsv",
+    "P_HOTSPOT_SELECT": "/project/jacobhsu/reference/VEP/custom_annotation/hg38_pathogenicDB_Region_vClinVar20251109.select.tsv",
+    "P_HOTSPOT_CLINICAL": "/project/jacobhsu/reference/VEP/custom_annotation/hg38_pathogenicDB_Region_vClinVar20251109.clinical.tsv",
     "BA1_EXCEPTION": "hg38_BA1exc.tsv"
   }
 }
